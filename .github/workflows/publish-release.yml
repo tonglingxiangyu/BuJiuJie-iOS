@@ -1,0 +1,68 @@
+name: Publish unsigned IPA release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: Build and publish public IPA
+    runs-on: macos-15
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Build unsigned app
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project BuJiuJie.xcodeproj \
+            -scheme BuJiuJie \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            clean build
+
+      - name: Package IPA
+        run: |
+          mkdir -p Payload
+          cp -R build/Build/Products/Release-iphoneos/BuJiuJie.app Payload/
+          ditto -c -k --sequesterRsrc --keepParent Payload BuJiuJie-unsigned.ipa
+
+      - name: Keep Actions artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BuJiuJie-unsigned-IPA
+          path: BuJiuJie-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish public prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view unsigned-latest >/dev/null 2>&1; then
+            gh release upload unsigned-latest BuJiuJie-unsigned.ipa --clobber
+          else
+            gh release create unsigned-latest BuJiuJie-unsigned.ipa \
+              --title "不纠结 unsigned IPA" \
+              --notes "Unsigned iOS build for Windows Sideloadly installation." \
+              --prerelease \
+              --target "$GITHUB_SHA"
+          fi
