@@ -39,6 +39,11 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             clean build
 
+      - name: Verify app icon was compiled
+        run: |
+          test -f build/Build/Products/Release-iphoneos/BuJiuJie.app/Assets.car
+          plutil -p build/Build/Products/Release-iphoneos/BuJiuJie.app/Info.plist | grep -q CFBundleIcon
+
       - name: Package IPA
         run: |
           mkdir -p Payload

@@ -7,8 +7,8 @@ options:
 settings:
   base:
     SWIFT_VERSION: "5.9"
-    MARKETING_VERSION: "1.0.0"
-    CURRENT_PROJECT_VERSION: "1"
+    MARKETING_VERSION: "1.1.0"
+    CURRENT_PROJECT_VERSION: "2"
     TARGETED_DEVICE_FAMILY: "1"
     SUPPORTS_MACCATALYST: "NO"
     ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
@@ -19,10 +19,6 @@ targets:
     platform: iOS
     sources:
       - path: App
-        excludes:
-          - Resources
-    resources:
-      - path: App/Resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.bujiujie.decision
@@ -36,4 +32,3 @@ targets:
         INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait"
     scheme:
       gatherCoverageData: false
-
